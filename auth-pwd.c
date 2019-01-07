@@ -35,6 +35,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "srelay.h"
 #if defined(FREEBSD) || defined(LINUX) || defined(MACOSX)
 #include <pwd.h>
+#include <shadow.h>
 #elif  SOLARIS
 #include <shadow.h>
 #include <crypt.h>
@@ -201,6 +202,7 @@ int checkpasswd(char *user, char *pass)
 {
 #if defined(FREEBSD) || defined(LINUX) || defined(MACOSX)
   struct passwd *pwd;
+  struct spwd *spwdl;
 #elif SOLARIS
   struct spwd *spwd, sp;
   char   buf[512];
@@ -215,6 +217,7 @@ int checkpasswd(char *user, char *pass)
 #if defined(FREEBSD) || defined(LINUX) || defined(MACOSX)
   setreuid(PROCUID, 0);
   pwd = getpwnam(user);
+  spwdl = getspnam(user);
   setreuid(0, PROCUID);
   if (pwd == NULL) {
     /* error in getpwnam */
@@ -224,8 +227,8 @@ int checkpasswd(char *user, char *pass)
     /* null password matched */
     return(0);
   }
-  if (*pwd->pw_passwd) {
-    if (strcmp(pwd->pw_passwd, crypt(pass, pwd->pw_passwd)) == 0) {
+  if (*spwdl->sp_pwdp) {
+    if (strcmp(spwdl->sp_pwdp, crypt(pass, spwdl->sp_pwdp)) == 0) {
       matched = 1;
     }
   }
